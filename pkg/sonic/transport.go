@@ -90,6 +90,8 @@ func HandleOptDiff(name string, task []DiffTask) error {
 				entry[path] = "dp-qpsk"
 			case e[int64(model.PacketTransport_OpticalModulationType_DP_16QAM)].Name:
 				entry[path] = "dp-16qam"
+			case e[int64(model.PacketTransport_OpticalModulationType_DP_QPSK_INTEROP)].Name:
+				entry[path] = "dp-qpsk-interop"
 			}
 		default:
 			fmt.Println("unhandled task:", path)
@@ -293,7 +295,9 @@ func ConfigureTransport(m *model.PacketTransponder) error {
 		mod := "dp-16qam"
 		if v.ModulationType == model.PacketTransport_OpticalModulationType_DP_QPSK {
 			mod = "dp-qpsk"
-		}
+		} else if v.ModulationType == model.PacketTransport_OpticalModulationType_DP_QPSK_INTEROP {
+            mod = "dp-qpsk-interop"
+        }
 
 		enabled := "on"
 		if !(*v.Enabled) {

@@ -45,6 +45,8 @@ module packet-transport {
             }
             enum DP_16QAM {
             }
+            enum DP_QPSK_INTEROP {
+            }
         }
     }
 

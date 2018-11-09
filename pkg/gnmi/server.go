@@ -45,12 +45,12 @@ var (
 // via Subscribe or Get will receive a stream of updates based on the requested
 // path. Set request is processed by server too.
 type Server struct {
-	s      *grpc.Server
-	lis    net.Listener
-	port   int64
-	config ygot.ValidatedGoStruct
-	cMu    sync.Mutex
-	model  *Model
+	s        *grpc.Server
+	lis      net.Listener
+	port     int64
+	config   ygot.ValidatedGoStruct
+	cMu      sync.Mutex
+	model    *Model
 	callback ConfigCallback
 }
 
@@ -65,10 +65,10 @@ func NewServer(model *Model, config []byte, port int64, callback ConfigCallback,
 	reflection.Register(s)
 
 	srv := &Server{
-		s:      s,
-		port:   port,
-		config: rootStruct,
-		model:  model,
+		s:        s,
+		port:     port,
+		config:   rootStruct,
+		model:    model,
 		callback: callback,
 	}
 	if srv.port < 0 {
@@ -163,7 +163,6 @@ func isNil(i interface{}) bool {
 		return false
 	}
 }
-
 
 // deleteKeyedListEntry deletes the keyed list entry from node that matches the
 // path elem. If the entry is the only one in keyed list, deletes the entire
@@ -263,7 +262,6 @@ func setPathWithoutAttribute(op pb.UpdateResult_Operation, curNode map[string]in
 	}
 	return nil
 }
-
 
 // checkEncodingAndModel checks whether encoding and models are supported by the server. Return error if anything is unsupported.
 func (srv *Server) checkEncodingAndModel(encoding pb.Encoding, models []*pb.ModelData) error {
@@ -430,7 +428,6 @@ func (srv *Server) doReplaceOrUpdate(jsonTree map[string]interface{}, op pb.Upda
 		Op:   op,
 	}, nil
 }
-
 
 // Capabilities returns supported encodings and supported models.
 func (srv *Server) Capabilities(ctx context.Context, req *pb.CapabilityRequest) (*pb.CapabilityResponse, error) {
@@ -601,20 +598,6 @@ func (srv *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse
 		}
 		results = append(results, res)
 	}
-	
-	// Convert IETF JSON to internal JSON
-	/*goStruct, err := srv.toGoStruct(jsonTree)
-	if err != nil {
-		msg := fmt.Sprintf("error in converting gostruct %v: %v", jsonTree, err)
-		fmt.Errorf(msg)
-		return nil, status.Error(codes.Internal, msg)
-	}
-	jsonTree, err = ygot.ConstructInternalJSON(goStruct)
-	if err != nil {
-		msg := fmt.Sprintf("error in constructing %v internal JSON tree: %v", goStruct, err)
-		fmt.Errorf(msg)
-		return nil, status.Error(codes.Internal, msg)
-	}*/
 
 	jsonDump, err := json.Marshal(jsonTree)
 	if err != nil {
@@ -629,8 +612,8 @@ func (srv *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse
 		return nil, status.Error(codes.Internal, msg)
 	}
 	srv.config = rootStruct
-	return &pb.SetResponse {
-		Prefix:  req.GetPrefix(),
+	return &pb.SetResponse{
+		Prefix:   req.GetPrefix(),
 		Response: results,
 	}, nil
 }

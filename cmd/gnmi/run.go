@@ -10,17 +10,53 @@ import (
 	"github.com/openconfig/ygot/ygot"
 
 	oopt "github.com/osrg/oopt/pkg/gnmi"
-	"github.com/osrg/oopt/pkg/model"
+	model "github.com/osrg/oopt/pkg/model_gnmi"
 )
 
 var (
-	current *model.PacketTransponder
+	current *model.Component
 	git_dir = "/etc/oopt"
 )
 
 const (
-	CONFIG_FILE = "config.json"
+	CONFIG_FILE = "config_gnmi.json"
+	opticalModuleNum int = 8
 )
+
+func initConfig() error {
+	name := fmt.Sprintf("Opt3")
+	d := &model.Component{
+		Name: &name,
+		OpticalChannel: &model.Component_OpticalChannel{
+		Frequency: ygot.Uint64(0),
+		},
+	}
+	/*d := model.Component{}
+	for i := 1; i <= opticalModuleNum; i++ {
+		key := fmt.Sprintf("Opt%d", i)
+		d[i] = &model.Component{
+			Name: &key,
+			OpticalChannel: &model.Component_OpticalChannel{
+				Frequency: ygot.Uint64(0),
+			},
+		}
+	}*/
+	json, err := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
+		Format: ygot.RFC7951,
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf(json)
+	file, err := os.Create(fmt.Sprintf("%s/%s", git_dir, CONFIG_FILE))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	file.Write(([]byte)(json))
+	file.Write([]byte("\n"))
+	return nil
+}
 
 func callback(newConfig ygot.ValidatedGoStruct) error {
 	buf, err := ygot.EmitJSON(newConfig, &ygot.EmitJSONConfig{
@@ -44,16 +80,21 @@ func main() {
 	port := flag.Int64("port", 10164, "Listen port")
 	flag.Parse()
 
+	err := initConfig()
+	if err != nil {
+		panic(fmt.Sprintf("init: %v", err))
+	}
+
 	data, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", git_dir, CONFIG_FILE))
 	if err != nil {
 		panic(fmt.Sprintf("open: %v", err))
 	}
-	current = &model.PacketTransponder{}
+	current = &model.Component{}
 	model.Unmarshal(data, current)
 
 	servermodel := oopt.NewModel(
 		oopt.ModelData,
-		reflect.TypeOf((*model.PacketTransponder)(nil)),
+		reflect.TypeOf((*model.Component)(nil)),
 		model.SchemaTree["PacketTransponder"],
 		model.Unmarshal,
 		model.ΛEnum,

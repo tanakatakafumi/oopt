@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	current *model.Component
+	current *model.Device
 	git_dir = "/etc/oopt"
 )
 
@@ -24,30 +24,22 @@ const (
 )
 
 func initConfig() error {
-	name := fmt.Sprintf("Opt3")
-	d := &model.Component{
-		Name: &name,
-		OpticalChannel: &model.Component_OpticalChannel{
-		Frequency: ygot.Uint64(0),
-		},
-	}
-	/*d := model.Component{}
+	d := &model.Device{}
 	for i := 1; i <= opticalModuleNum; i++ {
-		key := fmt.Sprintf("Opt%d", i)
-		d[i] = &model.Component{
-			Name: &key,
-			OpticalChannel: &model.Component_OpticalChannel{
-				Frequency: ygot.Uint64(0),
-			},
+		c, err := d.NewComponent(fmt.Sprintf("Opt%d", i))
+		if err != nil {
+			return fmt.Errorf("failed to create device: %v", err)
 		}
-	}*/
+		c.OpticalChannel = &model.Component_OpticalChannel{
+			Frequency: ygot.Uint64(0),
+		}
+	}
 	json, err := ygot.EmitJSON(d, &ygot.EmitJSONConfig{
 		Format: ygot.RFC7951,
 	})
 	if err != nil {
 		return err
 	}
-	fmt.Printf(json)
 	file, err := os.Create(fmt.Sprintf("%s/%s", git_dir, CONFIG_FILE))
 	if err != nil {
 		return err
@@ -89,13 +81,13 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("open: %v", err))
 	}
-	current = &model.Component{}
+	current = &model.Device{}
 	model.Unmarshal(data, current)
 
 	servermodel := oopt.NewModel(
 		oopt.ModelData,
-		reflect.TypeOf((*model.Component)(nil)),
-		model.SchemaTree["PacketTransponder"],
+		reflect.TypeOf((*model.Device)(nil)),
+		model.SchemaTree["Device"],
 		model.Unmarshal,
 		model.ΛEnum,
 	)

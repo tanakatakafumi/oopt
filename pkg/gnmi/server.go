@@ -26,6 +26,8 @@ import (
 	dpb "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
 	cpb "google.golang.org/genproto/googleapis/rpc/code"
+
+	oopt_model "github.com/osrg/oopt/pkg/model"
 )
 
 // ConfigCallback is the signature of the function to apply a validated config to the physical device.
@@ -612,6 +614,21 @@ func (srv *Server) Set(ctx context.Context, req *pb.SetRequest) (*pb.SetResponse
 		return nil, status.Error(codes.Internal, msg)
 	}
 	srv.config = rootStruct
+	
+	// ###HARDCODING###
+	oopt_current := &oopt_model.PacketTransponder{}
+	data, err := ioutil.ReadFile("./config.json")
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("%v", err))
+	}
+	err = oopt_model.Unmarshal(data, oopt_current)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("%v", err))
+	}
+
+	// ###########
+
+
 	return &pb.SetResponse{
 		Prefix:   req.GetPrefix(),
 		Response: results,
